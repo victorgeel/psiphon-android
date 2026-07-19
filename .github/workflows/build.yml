@@ -1,0 +1,36 @@
+name: Build Android APK
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        lfs: true # Git LFS ဖြင့် သိမ်းထားသော ကြီးမားသည့်ဖိုင်များရှိပါက အမှားအယွင်းမရှိ ဆွဲယူနိုင်ရန်
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Build with Gradle
+      run: |
+        # gradlew ဖိုင်ရှိသော Folder ကို အလိုအလျောက်ရှာဖွေခြင်း
+        GRADLE_DIR=$(dirname $(find . -name "gradlew" | head -n 1))
+        echo "Found Android Gradle project at: $GRADLE_DIR"
+        cd "$GRADLE_DIR"
+        
+        # Build လုပ်ခွင့် Permission ပေးခြင်း
+        chmod +x ./gradlew
+        
+        # ပျက်နေသော Cache များကို ရှင်းလင်းပြီး ဖိုင်များကို အသစ်ပြန်လည်ဆွဲယူရန် Force လုပ်ခြင်း
+        ./gradlew clean assembleDebug --refresh-dependencies --no-daemon
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: heybro-apk
+        path: '**/*.apk'

@@ -1,0 +1,36 @@
+name: Build Android APK
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Build with Gradle
+      run: |
+        # gradlew ဖိုင်ရှိသော Folder ကို အလိုအလျောက်ရှာဖွေခြင်း
+        GRADLE_DIR=$(dirname $(find . -name "gradlew" | head -n 1))
+        echo "Found Android Gradle project at: $GRADLE_DIR"
+        cd "$GRADLE_DIR"
+        
+        # Build လုပ်ခွင့် Permission ပေးခြင်း
+        chmod +x ./gradlew
+        
+        # Debug APK ထုတ်ခြင်း
+        ./gradlew assembleDebug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: heybro-apk
+        # ထွက်လာသမျှ APK ကို အလိုအလျောက် ရှာပြီး တင်ပေးမည်
+        path: '**/*.apk'
+        

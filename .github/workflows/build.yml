@@ -8,7 +8,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    # Android Build ရန် လိုအပ်သော Java ကို ထည့်သွင်းခြင်း
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
@@ -19,10 +18,18 @@ jobs:
       with:
         channel: 'stable'
         
-    - run: flutter pub get
-    - run: flutter build apk --debug
-    
-    - uses: actions/upload-artifact@v4
+    - name: Find Project Root and Build
+      run: |
+        # pubspec.yaml ရှိသော Folder ကို အလိုအလျောက်ရှာဖွေခြင်း
+        PROJECT_DIR=$(dirname $(find . -name "pubspec.yaml" | head -n 1))
+        echo "Found Flutter project at: $PROJECT_DIR"
+        cd $PROJECT_DIR
+        flutter pub get
+        flutter build apk --debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
       with:
         name: heybro-apk
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        # ဖိုင်တွဲအမည် မည်သို့ပင်ဖြစ်စေ APK ကို အလိုအလျောက် ရှာဖွေပေးမည်
+        path: '**/build/app/outputs/flutter-apk/app-debug.apk'
